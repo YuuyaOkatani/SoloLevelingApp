@@ -1,12 +1,21 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
-
+import { createStackNavigator } from '@react-navigation/stack';
+import { NavigationContainer } from '@react-navigation/native';
+import { Homepage } from './pages/Homepage';
+import { MainQuests } from './pages/MainQuests';
+import { SideQuests } from './pages/SideQuests';
 export default function App() {
+  const Stack = createStackNavigator();
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <NavigationContainer >
+      <Stack.Navigator  screenOptions={{headerShown: false}}  initialRouteName="Home">
+        <Stack.Screen name="Home" component={Homepage} />
+        <Stack.Screen name="MainQuests" component={MainQuests} />
+        <Stack.Screen name="SideQuests" component={SideQuests} />
+      </Stack.Navigator>
+    </NavigationContainer>
+    
   );
 }
 
