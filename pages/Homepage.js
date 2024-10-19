@@ -11,109 +11,33 @@ import { MainQuestsQuery, SideQuestsQuery, CompletedTasksQuery, CurrentTasksQuer
 
 export const Homepage = ({ navigation }) => {
 
-    const [MainQuests, setMainQuests] = useState([]);
-    const [SideQuests, setSideQuests] = useState([]);
-    const [CompletedTasks, setCompletedTasks] = useState([]);
-    const [CurrentTasks, setCurrentTasks] = useState([]);
 
-    const CurrentQuestsCollection = collection(db, 'currentQuests');
-    const MainQuestsCollection = collection(db, 'mainQuests');
-    const SideQuestsCollection = collection(db, 'sideQuests');
-    const CompletedQuestsCollection = collection(db, 'completedTasks');
+    const [Quests, setQuests] = useState([]);
 
-
-    const MainQuestsQuery = async () => {
+    const QuestsQuery = async (collectionName) => {
+        const collectionRef = collection(db, collectionName);
 
         try {
+            const QuerySnapshot = await getDocs(collectionRef); 
+            const Data = [];
 
-            const MainQuestsQuerySnapshot = await getDocs(MainQuestsCollection)
-            const MainQuestsData = [];
-            MainQuestsQuerySnapshot.forEach((doc) => {
-                MainQuestsData.push({ ...doc.data(), id: doc.id })
+            QuerySnapshot.forEach((doc) => {
+                Data.push({ ...doc.data(), id: doc.id })
+            })
 
-            });
-
-            setMainQuests(MainQuestsData)
-
-
+            setQuests(Data)
 
         } catch (error) {
+
             console.log("Erro ao tentar acessar dados: ", error);
-
-
-        }
-    }
-
-    const SideQuestsQuery = async () => {
-        try {
-            const SideQuestsQuerySnapshot = await getDocs(SideQuestsCollection)
-            const SideQuestsData = [];
-            SideQuestsQuerySnapshot.forEach((doc) => {
-                SideQuestsData.push({ ...doc.data(), id: doc.id })
-
-            });
-
-            setSideQuests(SideQuestsData)
-
-
- 
-
-        } catch (error) {
-            console.log("Erro ao tentar acessar dados: ", error);
-
-        }
-
-
-    }
-    const CompletedTasksQuery = async () => {
-        try {
-            const CompletedQuestsQuerySnapshot = await getDocs(CompletedQuestsCollection)
-            const CompletedQuestsData = [];
-
-            CompletedQuestsQuerySnapshot.forEach((doc) => {
-                CompletedQuestsData.push({ ...doc.data(), id: doc.id })
-
-            });
-
-            setCompletedTasks(CompletedQuestsData)
-
-   
-
-        } catch (error) {
-            console.log("Erro ao tentar acessar dados: ", error);
-
-        }
-
-    }
-
-    const CurrentTasksQuery = async () => {
-        try {
-
-            const CurrentQuestsQuerySnapshot = await getDocs(CurrentQuestsCollection)
-            const CurrentQuestsData = [];
-
-            CurrentQuestsQuerySnapshot.forEach((doc) => {
-                CurrentQuestsData.push({ ...doc.data(), id: doc.id })
-            });
-
-            setCurrentTasks(CurrentQuestsData)
-
             
-          
-            
-        } catch (error) {
-            console.log("Erro ao tentar acessar dados: ", error);
-
         }
-
     }
+
+
 
     useEffect(() => {
-
-        MainQuestsQuery();
-        SideQuestsQuery();
-        CompletedTasksQuery();
-        CurrentTasksQuery();
+        QuestsQuery('currentQuests');
     }, [])
 
 
@@ -122,15 +46,7 @@ export const Homepage = ({ navigation }) => {
         navigation.navigate('MainQuests')
 
     }
-
-    console.log(CurrentTasks);
     
-
-
-
-
- 
-
 
     return (
         <View style={styles.container}>
@@ -166,7 +82,7 @@ export const Homepage = ({ navigation }) => {
                     <View style={{flex: 1}}>
                         <Scrollbar>
                             <FlatList
-                                data={CurrentTasks}
+                                data={Quests}
                                 keyExtractor={(item) => item.id}
                                 renderItem={({ item }) => (
 

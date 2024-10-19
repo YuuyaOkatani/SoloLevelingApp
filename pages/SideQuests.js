@@ -1,6 +1,38 @@
 import React, {View, Text, StyleSheet} from 'react-native'
-
+import { collection } from '@firebase/firestore';
+import { db } from '../api/firebaseConfig';
+import { useEffect, useState } from 'react';
 export const SideQuests = () => {
+
+    const [Quests, setQuests] = useState([]);
+
+    const QuestsQuery = async (collectionName) => {
+        const collectionRef = collection(db, collectionName);
+
+        try {
+            const QuerySnapshot = await getDocs(collectionRef); 
+            const Data = [];
+
+            QuerySnapshot.forEach((doc) => {
+                Data.push({ ...doc.data(), id: doc.id })
+            })
+
+            setQuests(Data)
+
+        } catch (error) {
+
+            console.log("Erro ao tentar acessar dados: ", error);
+            
+        }
+    }
+
+
+
+    useEffect(() => {
+        QuestsQuery('sideQuests');
+    }, [])
+
+
   return (
     <View style={styles.container}>
       <View style={styles.container1}>
