@@ -2,32 +2,41 @@ import { collection, getDocs } from '@firebase/firestore'
 import React, { View, Text, StyleSheet, FlatList } from 'react-native'
 import { ProgressBar } from 'react-progressbar-fancy'
 import { db } from '../api/firebaseConfig'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import AddIcon from '@mui/icons-material/Add';
 import { TouchableOpacity } from 'react-native'
 import Scrollbar from 'react-scrollbars-custom'
 import { Checkbox } from '@mui/material'
+import { MMKV } from 'react-native-mmkv'
+import { DBquery } from '../functions/DBquery'
+import { useFocusEffect } from '@react-navigation/native'
 // import Animated from 'react-native-reanimated'
 
 export const Homepage = ({ navigation }) => {
 
 
-
+    const storage = new MMKV()
 
     const [Quests, setQuests] = useState([]);
 
-    const QuestsQuery = async (collectionName) => {
-        const collectionRef = collection(db, collectionName);
+    const updateQuery = new DBquery();
+
+    const QuestsQuery = () => {
+        // const collectionRef = collection(db, collectionName);
 
         try {
-            const QuerySnapshot = await getDocs(collectionRef);
-            const Data = [];
+            // const QuerySnapshot = await getDocs(collectionRef);
+            // const Data = [];
 
-            QuerySnapshot.forEach((doc) => {
-                Data.push({ ...doc.data(), id: doc.id })
-            })
+            // QuerySnapshot.forEach((doc) => {
+            //     Data.push({ ...doc.data(), id: doc.id })
+            // })
+            let currentQuests = updateQuery.getQuests('currentQuests');
 
-            setQuests(Data)
+
+            setQuests(currentQuests);
+
+
 
         } catch (error) {
 
@@ -36,18 +45,37 @@ export const Homepage = ({ navigation }) => {
         }
     }
 
+    
 
 
-    useEffect(() => {
-        QuestsQuery('currentQuests');
-    }, [])
 
-    QuestsQuery('currentQuests');
+
+    // const deleteAll = () => {
+    //     storage.clearAll()
+    //     QuestsQuery()
+    // }
 
     const newQuest = async () => {
         navigation.navigate('QueryQuest')
 
     }
+
+
+
+
+
+    useFocusEffect(
+        useCallback(() => {
+          // Função a ser executada ao mudar para esta tela
+          console.log('Tela ativada');
+          QuestsQuery();
+    
+          // Retorna uma função de limpeza se necessário
+          return () => {
+            console.log('Saindo da tela');
+          };
+        }, [])
+      );
 
 
     return (
@@ -90,7 +118,7 @@ export const Homepage = ({ navigation }) => {
 
 
                                     <View style={styles.questButton}>
-                                        <Checkbox style={{marginRight: 10}} />
+                                        <Checkbox style={{ marginRight: 10 }} />
 
                                         <TouchableOpacity style={{ flex: 1 }}>
                                             <Text style={{ color: 'white', fontSize: 20 }}>{item.name}</Text>
@@ -103,6 +131,8 @@ export const Homepage = ({ navigation }) => {
                         <TouchableOpacity style={styles.addQuestButton} onPress={() => navigation.navigate('NewQuest')}>
                             <Text style={{ color: 'white', fontSize: 20 }}>Add Quest</Text>
                         </TouchableOpacity>
+
+
 
                     </View>
 

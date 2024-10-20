@@ -4,7 +4,32 @@ import { collection, getDocs, addDoc, serverTimestamp, Timestamp, updateDoc, get
 
 import { View, Text, Button, FlatList, Alert, TouchableOpacity, StyleSheet } from 'react-native'
 import { useState } from 'react'
+import { MMKV } from 'react-native-mmkv';
+
+
+export class DBquery {
+
+    storage = new MMKV()
+    
+
+    constructor() {
+       
+    }
 
 
 
+    getQuests(collectionName) {
+     
+        const collectionString = this.storage.getString(collectionName)
+
+        const Quests = collectionString ? JSON.parse(collectionString) : [];
+
+   
+
+        return Quests
+
+
+
+    }
+}
 

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback } from 'react'
 
 import { db } from '../api/firebaseConfig';
 import { collection, getDocs } from '@firebase/firestore'
@@ -7,23 +7,32 @@ import Scrollbar from 'react-scrollbars-custom'
 import { useEffect, useState } from 'react'
 import { Checkbox, FormControl, InputLabel, MenuItem, Select } from '@mui/material'
 import { Close } from '@mui/icons-material'
+import { MMKV } from 'react-native-mmkv';
+import { DBquery } from '../functions/DBquery';
+import { useFocusEffect } from '@react-navigation/native';
 
 export const QueryQuest = ({ navigation }) => {
 
     const [Quests, setQuests] = useState([]);
-
+    const [questList, setQuestList] = useState('');
+    const updateQuery = new DBquery();
     const QuestsQuery = async (collectionName) => {
-        const collectionRef = collection(db, collectionName);
+        // const collectionRef = collection(db, collectionName);
 
         try {
-            const QuerySnapshot = await getDocs(collectionRef);
-            const Data = [];
+            // const QuerySnapshot = await getDocs(collectionRef);
+            // const Data = [];
 
-            QuerySnapshot.forEach((doc) => {
-                Data.push({ ...doc.data(), id: doc.id })
-            })
+            // QuerySnapshot.forEach((doc) => {
+            //     Data.push({ ...doc.data(), id: doc.id })
+            // })
 
-            setQuests(Data)
+
+
+            let Quests = updateQuery.getQuests(collectionName)
+           
+            
+            setQuests(Quests)
 
         } catch (error) {
 
@@ -34,16 +43,25 @@ export const QueryQuest = ({ navigation }) => {
 
 
 
-    useEffect(() => {
-        QuestsQuery('mainQuests');
-    }, [])
-
-    const [questList, setQuestList] = useState('');
+   
 
     const handleChange = (event) => {
         setQuestList(event.target.value);
         QuestsQuery(event.target.value);
     };
+
+    useFocusEffect(
+        useCallback(() => {
+          // Função a ser executada ao mudar para esta tela
+          console.log('Tela ativada');
+          QuestsQuery('mainQuests'); // Carrega os dados da coleção principal quests quando a tela é ativada
+        
+          // Retorna uma função de limpeza se necessário
+          return () => {
+            console.log('Saindo da tela');
+          };
+        }, [])
+      );
 
 
 
