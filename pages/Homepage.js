@@ -1,4 +1,4 @@
-import { collection, getDocs, addDoc, serverTimestamp, Timestamp, updateDoc, getDoc, doc, deleteDoc, arrayUnion, arrayRemove } from '@firebase/firestore'
+import { collection, getDocs } from '@firebase/firestore'
 import React, { View, Text, StyleSheet, FlatList } from 'react-native'
 import { ProgressBar } from 'react-progressbar-fancy'
 import { db } from '../api/firebaseConfig'
@@ -6,10 +6,12 @@ import { useEffect, useState } from 'react'
 import AddIcon from '@mui/icons-material/Add';
 import { TouchableOpacity } from 'react-native'
 import Scrollbar from 'react-scrollbars-custom'
-import { MainQuestsQuery, SideQuestsQuery, CompletedTasksQuery, CurrentTasksQuery } from '../functions/DBquery'
+import { Checkbox } from '@mui/material'
 // import Animated from 'react-native-reanimated'
 
 export const Homepage = ({ navigation }) => {
+
+
 
 
     const [Quests, setQuests] = useState([]);
@@ -18,7 +20,7 @@ export const Homepage = ({ navigation }) => {
         const collectionRef = collection(db, collectionName);
 
         try {
-            const QuerySnapshot = await getDocs(collectionRef); 
+            const QuerySnapshot = await getDocs(collectionRef);
             const Data = [];
 
             QuerySnapshot.forEach((doc) => {
@@ -30,7 +32,7 @@ export const Homepage = ({ navigation }) => {
         } catch (error) {
 
             console.log("Erro ao tentar acessar dados: ", error);
-            
+
         }
     }
 
@@ -40,13 +42,13 @@ export const Homepage = ({ navigation }) => {
         QuestsQuery('currentQuests');
     }, [])
 
-
+    QuestsQuery('currentQuests');
 
     const newQuest = async () => {
-        navigation.navigate('MainQuests')
+        navigation.navigate('QueryQuest')
 
     }
-    
+
 
     return (
         <View style={styles.container}>
@@ -72,29 +74,35 @@ export const Homepage = ({ navigation }) => {
                 <View style={styles.taskBox}>
                     <View style={styles.taskBar}>
                         <Text style={[styles.textStyle, { flex: 1 }]}>
-                            Lvl
+                            Current Quests
                         </Text>
                         <TouchableOpacity onPress={newQuest}>
                             <AddIcon style={{ fontSize: 25, color: 'white', margin: 6 }} />
                         </TouchableOpacity>
 
                     </View>
-                    <View style={{flex: 1}}>
+                    <View style={{ flex: 1, marginTop: 10 }}>
                         <Scrollbar>
                             <FlatList
                                 data={Quests}
                                 keyExtractor={(item) => item.id}
                                 renderItem={({ item }) => (
 
-                                    <View >
-                                        <Text style={{ color: 'white', fontSize: 25 }}>
-                                            {item.name}
-                                        </Text>
 
+                                    <View style={styles.questButton}>
+                                        <Checkbox style={{marginRight: 10}} />
+
+                                        <TouchableOpacity style={{ flex: 1 }}>
+                                            <Text style={{ color: 'white', fontSize: 20 }}>{item.name}</Text>
+                                        </TouchableOpacity>
                                     </View>
+
 
                                 )} />
                         </Scrollbar>
+                        <TouchableOpacity style={styles.addQuestButton} onPress={() => navigation.navigate('NewQuest')}>
+                            <Text style={{ color: 'white', fontSize: 20 }}>Add Quest</Text>
+                        </TouchableOpacity>
 
                     </View>
 
@@ -161,5 +169,23 @@ const styles = StyleSheet.create({
     taskBar: {
         flexDirection: 'row'
     },
+
+    questButton: {
+        borderWidth: 1,
+        borderColor: 'white',
+        alignItems: 'center',
+        flexDirection: 'row',
+        marginTop: 30,
+        marginHorizontal: 5,
+        height: 70
+    },
+
+    addQuestButton: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        margin: 30
+    }
+
+
 
 })
