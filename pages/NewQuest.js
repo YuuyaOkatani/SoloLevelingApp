@@ -6,7 +6,9 @@ import { Close } from '@mui/icons-material'
 import { FormControl, InputLabel, MenuItem, Select } from '@mui/material'
 import { MMKV } from 'react-native-mmkv'
 import { DBquery } from '../functions/DBquery'
-const {v4: uuidv4} = require('uuid');
+const { v4: uuidv4 } = require('uuid');
+
+import { Questoes } from '../functions/System'
 
 
 
@@ -19,7 +21,10 @@ export const NewQuest = ({ navigation }) => {
     const [questList, setQuestList] = useState('mainQuests');
     const [questName, setQuestName] = useState('');
     const [questDescription, setQuestDescription] = useState('');
-    
+    const [QuestTopic, setQuestTopic] = useState({});
+    const [Quantity, setQuantity] = useState(0);
+
+
 
 
 
@@ -35,24 +40,29 @@ export const NewQuest = ({ navigation }) => {
 
     const addQuest = () => {
         try {
+
+            console.log(QuestTopic);
             
-
             const collectionString = storage.getString(questList)
-
-            const Quests = collectionString ? JSON.parse(collectionString) : []; 
+            
+            console.log(QuestTopic);
+            
+           
+            const Quests = collectionString ? JSON.parse(collectionString) : [];
             let newKey = uuidv4();
-            let Quest = {
+            let QuestRef = {
                 id: newKey,
                 name: questName,
                 description: questDescription,
                 completed: false,
                 class: questList,
-                // level: 1,
-                // progress: 0,
-                // reward: {
+                quantity: Quantity,
+                topic: QuestTopic,
+                reward: Quantity * QuestTopic.xp
+
             }
 
-            Quests.push(Quest);
+            Quests.push(QuestRef);
             storage.set(questList, JSON.stringify(Quests));
 
 
@@ -72,7 +82,7 @@ export const NewQuest = ({ navigation }) => {
             setQuestName('');
             setQuestDescription('');
 
-      
+
 
         } catch (error) {
 
@@ -84,10 +94,15 @@ export const NewQuest = ({ navigation }) => {
 
     const handleChange = (event) => {
         setQuestList(event.target.value);
-      
+
     };
 
-    
+    const handleChangeTopic = (event) => {
+        setQuestTopic(event.target.value);
+
+    };
+
+
 
 
 
@@ -140,6 +155,45 @@ export const NewQuest = ({ navigation }) => {
                         </Select>
                     </FormControl>
                 </View>
+                <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+
+                    <FormControl variant="standard" sx={{ m: 1, minWidth: 120, }}>
+
+                        <Select
+                            labelId="demo-simple-select-standard-label"
+                            id="demo-simple-select-standard"
+                            value={QuestTopic}
+                            onChange={handleChangeTopic}
+
+                            style={{ color: 'white', fontSize: 25 }}
+                            inputProps={{ 'aria-label': 'Without label', }}
+                            MenuProps={{
+                                PaperProps: {
+                                    sx: {
+                                        backgroundColor: '#031b40',
+                                        color: 'white', // Fundo transparente
+                                        fontSize: 25,
+                                    },
+                                },
+                            }}
+                        >
+
+                            {
+                                Questoes.matematica.map((item) => (
+                                    <MenuItem value={item}>
+                                        {item.topico}
+                                    </MenuItem>
+                                ))
+                            }
+                            <MenuItem value='Redação'>
+                                Redação
+                            </MenuItem>
+
+                        </Select>
+                    </FormControl>
+                </View>
+
+                <TextInput placeholder='Quantidade de exercícios' onChangeText={(e) => setQuantity( parseInt(e))} />
                 <TextInput placeholder='Digite o nome da missão' style={styles.questName} onChangeText={(questName) => setQuestName(questName)} />
                 <TextInput placeholder='Descrição' style={styles.questDescription} multiline={true} onChangeText={(questDescription) => setQuestDescription(questDescription)} />
 

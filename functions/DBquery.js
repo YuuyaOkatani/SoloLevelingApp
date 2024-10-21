@@ -16,6 +16,15 @@ export class DBquery {
 
     }
 
+    setScore(){
+        const completedQuests = this.getQuests('completedQuests')
+
+        console.log(completedQuests);
+        console.log(completedQuests.length);
+
+
+
+    }
 
 
     getQuests(collectionName) {
@@ -51,14 +60,17 @@ export class DBquery {
         
     }
 
-    updateQuests(Quest, name, description, questList) {
+    updateQuests(Quest, name, description, questList, completedResponse, quantity) {
 
         let updatedQuest = {
             ...Quest,
             name: name,
             description: description,
-            class: questList
+            class: questList,
+            completed: completedResponse,
+            quantity: quantity
         }
+
 
         console.log(updatedQuest);
 

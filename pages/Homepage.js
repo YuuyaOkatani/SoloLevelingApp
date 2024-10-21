@@ -39,6 +39,10 @@ export const Homepage = ({ navigation }) => {
 
             setQuests(currentQuests);
 
+            updateQuery.setScore();
+
+            
+
 
 
         } catch (error) {
@@ -60,7 +64,7 @@ export const Homepage = ({ navigation }) => {
 
                 if (quest === undefined || quest === null) {
                     setError(true);
-                    
+                    deleteAll()
                 }
                 else{
                     setError(false);
@@ -105,7 +109,7 @@ export const Homepage = ({ navigation }) => {
             console.log('Tela ativada');
             QuestsQuery();
             containUndefinedOrNull();
-            // deleteAll()
+           
             // Retorna uma função de limpeza se necessário
             return () => {
                 console.log('Saindo da tela');
@@ -154,7 +158,7 @@ export const Homepage = ({ navigation }) => {
 
 
                                     <View style={styles.questButton}>
-                                        <Checkbox style={{ marginRight: 10 }} />
+                                        <Checkbox style={{ marginRight: 10 }} onChange={() => {updateQuery.updateQuests(item, item.name, item.description, 'completedQuests', true, item.quantity)}} />
 
                                         <TouchableOpacity style={{ flex: 1 }}
 

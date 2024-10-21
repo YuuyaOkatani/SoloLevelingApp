@@ -6,6 +6,7 @@ import { Close } from '@mui/icons-material'
 import { FormControl, InputLabel, MenuItem, Select } from '@mui/material'
 import { MMKV } from 'react-native-mmkv'
 import { DBquery } from '../functions/DBquery'
+import { Questoes } from '../functions/System'
 
 
 
@@ -21,7 +22,8 @@ export const QuestDetails = ({ route, navigation }) => {
     const [questList, setQuestList] = useState(obj.class);
     const [questName, setQuestName] = useState('');
     const [questDescription, setQuestDescription] = useState('');
-    
+    const [QuestTopic, setQuestTopic] = useState(obj.topic);
+    const [Quantity, setQuantity] = useState(0);
     
     
 
@@ -35,7 +37,11 @@ export const QuestDetails = ({ route, navigation }) => {
       
     };
 
- 
+    const handleChangeTopic = (event) => {
+        setQuestTopic(event.target.value);
+
+    };
+
     
 
 
@@ -89,11 +95,50 @@ export const QuestDetails = ({ route, navigation }) => {
                         </Select>
                     </FormControl>
                 </View>
+                <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+
+                    <FormControl variant="standard" sx={{ m: 1, minWidth: 120, }}>
+
+                        <Select
+                            labelId="demo-simple-select-standard-label"
+                            id="demo-simple-select-standard"
+                            value={QuestTopic}
+                            onChange={handleChangeTopic}
+
+                            style={{ color: 'white', fontSize: 25 }}
+                            inputProps={{ 'aria-label': 'Without label', }}
+                            MenuProps={{
+                                PaperProps: {
+                                    sx: {
+                                        backgroundColor: '#031b40',
+                                        color: 'white', // Fundo transparente
+                                        fontSize: 25,
+                                    },
+                                },
+                            }}
+                        >
+
+                            {
+                                Questoes.matematica.map((item) => (
+                                    <MenuItem value={item}>
+                                        {item.topico}
+                                    </MenuItem>
+                                ))
+                            }
+                            <MenuItem value='Redação'>
+                                Redação
+                            </MenuItem>
+
+                        </Select>
+                    </FormControl>
+                </View>
+
+                <TextInput defaultValue={obj.quantity}  placeholder='Quantidade de exercícios' style={styles.questName} onChangeText={(e) => setQuantity( parseInt(e))} />
                 <TextInput defaultValue={obj.name} placeholder='Digite o nome da missão'  style={styles.questName} onChangeText={(questName) => setQuestName(questName)} />
                 <TextInput defaultValue={obj.description} placeholder='Descrição' style={styles.questDescription}  multiline={true} onChangeText={(questDescription) => setQuestDescription(questDescription)} />
 
 
-                <TouchableOpacity style={styles.questButton} onPress={() => updateQuery.updateQuests(obj, questName || obj.name, questDescription || obj.description, questList)}>
+                <TouchableOpacity style={styles.questButton} onPress={() => updateQuery.updateQuests(obj, questName || obj.name, questDescription || obj.description, questList, false, Quantity || obj.quantity)}>
                     <Text style={{ color: 'white', fontSize: 20 }}>Update Quest</Text>
                 </TouchableOpacity>
             </View>
