@@ -6,7 +6,7 @@ import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native
 import Scrollbar from 'react-scrollbars-custom'
 import { useEffect, useState } from 'react'
 import { Checkbox, FormControl, InputLabel, MenuItem, Select } from '@mui/material'
-import { Close } from '@mui/icons-material'
+import { Close, RemoveCircle } from '@mui/icons-material'
 import { MMKV } from 'react-native-mmkv';
 import { DBquery } from '../functions/DBquery';
 import { useFocusEffect } from '@react-navigation/native';
@@ -15,6 +15,7 @@ export const QueryQuest = ({ navigation }) => {
 
     const [Quests, setQuests] = useState([]);
     const [questList, setQuestList] = useState('');
+    const [deleteState, setDeleteState] = useState(false);
     const updateQuery = new DBquery();
     const QuestsQuery = async (collectionName) => {
         // const collectionRef = collection(db, collectionName);
@@ -30,8 +31,8 @@ export const QueryQuest = ({ navigation }) => {
 
 
             let Quests = updateQuery.getQuests(collectionName)
-           
-            
+
+
             setQuests(Quests)
 
         } catch (error) {
@@ -43,25 +44,37 @@ export const QueryQuest = ({ navigation }) => {
 
 
 
-   
+    const QuestDetails = (item) => {
+        console.log(item);
+        setDeleteState(false);
+        navigation.navigate('QuestDetails', item);
+    }
+
+    const deleteQuestF = (item) => {
+        console.log(item);
+        updateQuery.deleteQuest(item);
+        QuestsQuery(item.class);
+    }
 
     const handleChange = (event) => {
         setQuestList(event.target.value);
         QuestsQuery(event.target.value);
+        setDeleteState(false);
     };
 
     useFocusEffect(
         useCallback(() => {
-          // Função a ser executada ao mudar para esta tela
-          console.log('Tela ativada');
-          QuestsQuery('mainQuests'); // Carrega os dados da coleção principal quests quando a tela é ativada
-        
-          // Retorna uma função de limpeza se necessário
-          return () => {
-            console.log('Saindo da tela');
-          };
+            // Função a ser executada ao mudar para esta tela
+            console.log('Tela ativada');
+            QuestsQuery('mainQuests'); // Carrega os dados da coleção principal quests quando a tela é ativada
+            setQuestList('mainQuests');
+            // Retorna uma função de limpeza se necessário
+            return () => {
+                console.log('Saindo da tela');
+            };
         }, [])
-      );
+    );
+
 
 
 
@@ -75,25 +88,25 @@ export const QueryQuest = ({ navigation }) => {
                         </TouchableOpacity>
                     </View>
                     <View style={{ justifyContent: 'center', alignItems: 'center' }}>
-                
+
                         <FormControl variant="standard" sx={{ m: 1, minWidth: 120, }}>
 
                             <Select
                                 labelId="demo-simple-select-standard-label"
                                 id="demo-simple-select-standard"
-                                value={questList == ''? 'mainQuests': questList}
-                                onChange={handleChange} 
-                                style={{ color: 'white', fontSize: 25}}
-                                inputProps={{ 'aria-label': 'Without label',   }}
+                                value={questList == '' ? 'mainQuests' : questList}
+                                onChange={handleChange}
+                                style={{ color: 'white', fontSize: 25 }}
+                                inputProps={{ 'aria-label': 'Without label', }}
                                 MenuProps={{
                                     PaperProps: {
-                                      sx: {
-                                        backgroundColor: '#031b40',
-                                        color: 'white', // Fundo transparente
-                                        fontSize: 25,
-                                      },
+                                        sx: {
+                                            backgroundColor: '#031b40',
+                                            color: 'white', // Fundo transparente
+                                            fontSize: 25,
+                                        },
                                     },
-                                  }}
+                                }}
                             >
                                 <MenuItem value={'mainQuests'} >
                                     Main quests
@@ -126,7 +139,30 @@ export const QueryQuest = ({ navigation }) => {
                             <View style={styles.questButton}>
                                 <Checkbox />
 
-                                <Text style={{ color: 'white', fontSize: 25 }}>{item.name}</Text>
+                                <TouchableOpacity
+                                    onPress={() => QuestDetails(item)}
+                                    onLongPress={() => setDeleteState(!deleteState)}
+                                    style={{ flex: 1 }}
+                                    
+
+                                >
+
+                                    <Text style={{ color: 'white', fontSize: 25 }}>{item.name || 'error '}</Text>
+
+
+                                </TouchableOpacity>
+
+                                {deleteState &&
+
+                                    <View style={{marginHorizontal: 15}}>
+                                        <TouchableOpacity onPress={() => deleteQuestF(item)}>
+                                            <RemoveCircle style={{ color: 'red', fontSize: 30 }} />
+                                        </TouchableOpacity>
+                                    </View>
+
+                                }
+
+
                             </View>
                         )} />
 
@@ -178,7 +214,11 @@ const styles = StyleSheet.create({
     addQuestButton: {
         justifyContent: 'center',
         alignItems: 'center',
-        margin: 30
+        marginTop: 30,
+        marginHorizontal: 5,
+        borderWidth: 1,
+        borderColor: 'white',
+        height: 70
     }
 })
 

@@ -5,7 +5,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { Homepage } from './pages/Homepage';
 import { NewQuest } from './pages/NewQuest';
 import { QueryQuest } from './pages/QueryQuest';
-
+import { QuestDetails } from './pages/questDetails';
 export default function App() {
   const Stack = createStackNavigator();
   return (
@@ -14,6 +14,7 @@ export default function App() {
         <Stack.Screen name="Home" component={Homepage} />
         <Stack.Screen name="NewQuest" component={NewQuest} />
         <Stack.Screen name="QueryQuest" component={QueryQuest} />
+        <Stack.Screen name="QuestDetails" component={QuestDetails } />
 
       </Stack.Navigator>
     </NavigationContainer>

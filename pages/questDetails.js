@@ -6,80 +6,28 @@ import { Close } from '@mui/icons-material'
 import { FormControl, InputLabel, MenuItem, Select } from '@mui/material'
 import { MMKV } from 'react-native-mmkv'
 import { DBquery } from '../functions/DBquery'
-const {v4: uuidv4} = require('uuid');
 
 
 
-export const NewQuest = ({ navigation }) => {
+
+export const QuestDetails = ({ route, navigation }) => {
 
     const storage = new MMKV()
     const updateQuery = new DBquery();
 
+    const obj = route.params;
+    console.log(obj);
 
-    const [questList, setQuestList] = useState('mainQuests');
+    const [questList, setQuestList] = useState(obj.class);
     const [questName, setQuestName] = useState('');
     const [questDescription, setQuestDescription] = useState('');
+    
+    
     
 
 
 
-    // const buffer = new ArrayBuffer(3)
-    // const dataWriter = new Uint8Array(buffer)
-    // dataWriter[0] = 1
-    // dataWriter[1] = 100
-    // dataWriter[2] = 255
-    // storage.set('someToken', buffer)
 
-    // const buffer = storage.getBuffer('someToken')
-    // console.log(buffer) // [1, 100, 255]
-
-    const addQuest = () => {
-        try {
-            
-
-            const collectionString = storage.getString(questList)
-
-            const Quests = collectionString ? JSON.parse(collectionString) : []; 
-            let newKey = uuidv4();
-            let Quest = {
-                id: newKey,
-                name: questName,
-                description: questDescription,
-                completed: false,
-                class: questList,
-                // level: 1,
-                // progress: 0,
-                // reward: {
-            }
-
-            Quests.push(Quest);
-            storage.set(questList, JSON.stringify(Quests));
-
-
-            console.log(Quests);
-
-
-
-
-
-
-            // const collectionRef = collection(db, questList);
-            // addDoc(collectionRef, {
-            //     name: questName,
-            //     description: questDescription
-            // });
-
-            setQuestName('');
-            setQuestDescription('');
-
-      
-
-        } catch (error) {
-
-            console.log("Erro ao tentar acessar dados: ", error);
-
-        }
-    }
 
 
     const handleChange = (event) => {
@@ -87,6 +35,7 @@ export const NewQuest = ({ navigation }) => {
       
     };
 
+ 
     
 
 
@@ -140,12 +89,12 @@ export const NewQuest = ({ navigation }) => {
                         </Select>
                     </FormControl>
                 </View>
-                <TextInput placeholder='Digite o nome da missão' style={styles.questName} onChangeText={(questName) => setQuestName(questName)} />
-                <TextInput placeholder='Descrição' style={styles.questDescription} multiline={true} onChangeText={(questDescription) => setQuestDescription(questDescription)} />
+                <TextInput defaultValue={obj.name} placeholder='Digite o nome da missão'  style={styles.questName} onChangeText={(questName) => setQuestName(questName)} />
+                <TextInput defaultValue={obj.description} placeholder='Descrição' style={styles.questDescription}  multiline={true} onChangeText={(questDescription) => setQuestDescription(questDescription)} />
 
 
-                <TouchableOpacity style={styles.questButton} onPress={() => addQuest()}>
-                    <Text style={{ color: 'white', fontSize: 20 }}>Add Quest</Text>
+                <TouchableOpacity style={styles.questButton} onPress={() => updateQuery.updateQuests(obj, questName || obj.name, questDescription || obj.description, questList)}>
+                    <Text style={{ color: 'white', fontSize: 20 }}>Update Quest</Text>
                 </TouchableOpacity>
             </View>
         </View>

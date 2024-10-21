@@ -10,6 +10,7 @@ import { Checkbox } from '@mui/material'
 import { MMKV } from 'react-native-mmkv'
 import { DBquery } from '../functions/DBquery'
 import { useFocusEffect } from '@react-navigation/native'
+import { RemoveCircle } from '@mui/icons-material'
 // import Animated from 'react-native-reanimated'
 
 export const Homepage = ({ navigation }) => {
@@ -17,7 +18,9 @@ export const Homepage = ({ navigation }) => {
 
     const storage = new MMKV()
 
+    const [deleteState, setDeleteState] = useState(false);
     const [Quests, setQuests] = useState([]);
+    const [error, setError] = useState(false);
 
     const updateQuery = new DBquery();
 
@@ -45,15 +48,37 @@ export const Homepage = ({ navigation }) => {
         }
     }
 
-    
 
 
+    const containUndefinedOrNull = () => {
+   
+        let Quests = []
+        storage.getAllKeys().forEach(key => {
+            let stringKey = storage.getString(key)
+            Quests = stringKey ? JSON.parse(stringKey) : [];
+            Quests.forEach(quest => {
+
+                if (quest === undefined || quest === null) {
+                    setError(true);
+                    
+                }
+                else{
+                    setError(false);
+                }
+            })
+            console.log(Quests);
+        });
+        
+       
+        
+    }
 
 
-    // const deleteAll = () => {
-    //     storage.clearAll()
-    //     QuestsQuery()
-    // }
+    const deleteAll = () => {
+        storage.clearAll()
+        QuestsQuery()
+        setError(false);
+    }
 
     const newQuest = async () => {
         navigation.navigate('QueryQuest')
@@ -61,21 +86,32 @@ export const Homepage = ({ navigation }) => {
     }
 
 
+    const QuestDetails = (item) => {
+        console.log(item);
+        setDeleteState(false);
+        navigation.navigate('QuestDetails', item);
+    }
 
+    const deleteQuestF = (item) => {
+        console.log(item);
+        updateQuery.deleteQuest(item);
+        QuestsQuery(item.class);
+    }
 
 
     useFocusEffect(
         useCallback(() => {
-          // Função a ser executada ao mudar para esta tela
-          console.log('Tela ativada');
-          QuestsQuery();
-    
-          // Retorna uma função de limpeza se necessário
-          return () => {
-            console.log('Saindo da tela');
-          };
+            // Função a ser executada ao mudar para esta tela
+            console.log('Tela ativada');
+            QuestsQuery();
+            containUndefinedOrNull();
+            // deleteAll()
+            // Retorna uma função de limpeza se necessário
+            return () => {
+                console.log('Saindo da tela');
+            };
         }, [])
-      );
+    );
 
 
     return (
@@ -120,9 +156,24 @@ export const Homepage = ({ navigation }) => {
                                     <View style={styles.questButton}>
                                         <Checkbox style={{ marginRight: 10 }} />
 
-                                        <TouchableOpacity style={{ flex: 1 }}>
-                                            <Text style={{ color: 'white', fontSize: 20 }}>{item.name}</Text>
+                                        <TouchableOpacity style={{ flex: 1 }}
+
+                                        onPress={() => QuestDetails(item)}
+                                        onLongPress={() => setDeleteState(!deleteState)}
+                                        
+                                        >
+                                            <Text style={{ color: 'white', fontSize: 20 }}>{item.name || 'error'}</Text>
                                         </TouchableOpacity>
+
+                                        {deleteState &&
+
+                                            <View style={{ marginHorizontal: 15 }}>
+                                                <TouchableOpacity onPress={() => deleteQuestF(item)}>
+                                                    <RemoveCircle style={{ color: 'red', fontSize: 30 }} />
+                                                </TouchableOpacity>
+                                            </View>
+
+                                        }
                                     </View>
 
 
@@ -131,6 +182,15 @@ export const Homepage = ({ navigation }) => {
                         <TouchableOpacity style={styles.addQuestButton} onPress={() => navigation.navigate('NewQuest')}>
                             <Text style={{ color: 'white', fontSize: 20 }}>Add Quest</Text>
                         </TouchableOpacity>
+
+                        {
+                            error && 
+                        
+                        <TouchableOpacity style={styles.addQuestButton} onPress={deleteAll}>
+                            <Text style={{ color: 'white', fontSize: 20 }}>Delete all data (for emergency only)</Text>
+                        </TouchableOpacity>
+                        
+                        }
 
 
 
@@ -213,7 +273,11 @@ const styles = StyleSheet.create({
     addQuestButton: {
         justifyContent: 'center',
         alignItems: 'center',
-        margin: 30
+        marginTop: 30,
+        marginHorizontal: 5,
+        borderWidth: 1,
+        borderColor: 'white',
+        height: 70
     }
 
 
