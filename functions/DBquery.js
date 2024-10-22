@@ -1,9 +1,3 @@
-import React from 'react'
-import { db } from '../api/firebaseConfig';
-import { collection, getDocs, addDoc, serverTimestamp, Timestamp, updateDoc, getDoc, doc, deleteDoc, arrayUnion, arrayRemove } from '@firebase/firestore'
-
-import { View, Text, Button, FlatList, Alert, TouchableOpacity, StyleSheet } from 'react-native'
-import { useState } from 'react'
 import { MMKV } from 'react-native-mmkv';
 
 
@@ -60,7 +54,7 @@ export class DBquery {
         
     }
 
-    updateQuests(Quest, name, description, questList, completedResponse, quantity) {
+    updateQuests(Quest, name, description, questList, completedResponse, quantity, QuestTopic) {
 
         let updatedQuest = {
             ...Quest,
@@ -68,7 +62,9 @@ export class DBquery {
             description: description,
             class: questList,
             completed: completedResponse,
-            quantity: quantity
+            quantity: quantity,
+            topic: QuestTopic,
+            reward: quantity * QuestTopic.xp
         }
 
 

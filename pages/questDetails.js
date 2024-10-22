@@ -1,12 +1,13 @@
 import React, { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput } from 'react-native'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 // import { addDoc, collection, getDocs } from '@firebase/firestore'
 // import { db } from '../api/firebaseConfig'
 import { Close } from '@mui/icons-material'
 import { FormControl, InputLabel, MenuItem, Select } from '@mui/material'
 import { MMKV } from 'react-native-mmkv'
 import { DBquery } from '../functions/DBquery'
-import { Questoes } from '../functions/System'
+import { Questoes, QuestType } from '../functions/System'
+import { useFocusEffect } from '@react-navigation/native'
 
 
 
@@ -22,10 +23,24 @@ export const QuestDetails = ({ route, navigation }) => {
     const [questList, setQuestList] = useState(obj.class);
     const [questName, setQuestName] = useState('');
     const [questDescription, setQuestDescription] = useState('');
-    const [QuestTopic, setQuestTopic] = useState(obj.topic);
+    const [QuestTopic, setQuestTopic] = useState({});
     const [Quantity, setQuantity] = useState(0);
+
     
     
+    useFocusEffect(
+        useCallback(() => {
+            // Função a ser executada ao mudar para esta tela
+            console.log('Tela ativada');
+            setQuestTopic(obj.topic);
+           
+            // Retorna uma função de limpeza se necessário
+            return () => {
+                console.log('Saindo da tela');
+            };
+        }, [])
+    );
+
 
 
 
@@ -75,22 +90,14 @@ export const QuestDetails = ({ route, navigation }) => {
                                 },
                             }}
                         >
-                            <MenuItem value={'mainQuests'} >
-                                Main quests
-                            </MenuItem>
-
-                            <MenuItem value={'currentQuests'}>
-                                Current quests
-                            </MenuItem>
-                            <MenuItem value={'sideQuests'}>
-                                Side quests
-                            </MenuItem>
-                            <MenuItem value={'completedQuests'}>
-                                Completed quests
-                            </MenuItem>
-                            <MenuItem value={'dailyQuests'}>
-                                Daily quests
-                            </MenuItem>
+                            {/* TODO colocar isso como uma lista de objetos */}
+                            {
+                                QuestType.map((item) => (
+                                    <MenuItem value={item.value}>
+                                        {item.name}
+                                    </MenuItem>
+                                ))
+                            }
 
                         </Select>
                     </FormControl>
@@ -125,10 +132,7 @@ export const QuestDetails = ({ route, navigation }) => {
                                     </MenuItem>
                                 ))
                             }
-                            <MenuItem value='Redação'>
-                                Redação
-                            </MenuItem>
-
+                       
                         </Select>
                     </FormControl>
                 </View>
@@ -138,7 +142,7 @@ export const QuestDetails = ({ route, navigation }) => {
                 <TextInput defaultValue={obj.description} placeholder='Descrição' style={styles.questDescription}  multiline={true} onChangeText={(questDescription) => setQuestDescription(questDescription)} />
 
 
-                <TouchableOpacity style={styles.questButton} onPress={() => updateQuery.updateQuests(obj, questName || obj.name, questDescription || obj.description, questList, false, Quantity || obj.quantity)}>
+                <TouchableOpacity style={styles.questButton} onPress={() => updateQuery.updateQuests(obj, questName || obj.name, questDescription || obj.description, questList, false, Quantity || obj.quantity, QuestTopic || obj.topic)}>
                     <Text style={{ color: 'white', fontSize: 20 }}>Update Quest</Text>
                 </TouchableOpacity>
             </View>

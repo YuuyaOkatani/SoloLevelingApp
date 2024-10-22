@@ -1,14 +1,15 @@
 import React, { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput } from 'react-native'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 // import { addDoc, collection, getDocs } from '@firebase/firestore'
 // import { db } from '../api/firebaseConfig'
 import { Close } from '@mui/icons-material'
-import { FormControl, InputLabel, MenuItem, Select } from '@mui/material'
+import { FormControl, InputLabel, MenuItem, Select, TextField } from '@mui/material'
 import { MMKV } from 'react-native-mmkv'
 import { DBquery } from '../functions/DBquery'
 const { v4: uuidv4 } = require('uuid');
 
-import { Questoes } from '../functions/System'
+import { questoes } from '../functions/System'
+import { useFocusEffect } from '@react-navigation/native'
 
 
 
@@ -21,7 +22,9 @@ export const NewQuest = ({ navigation }) => {
     const [questList, setQuestList] = useState('mainQuests');
     const [questName, setQuestName] = useState('');
     const [questDescription, setQuestDescription] = useState('');
-    const [QuestTopic, setQuestTopic] = useState({});
+
+    const [QuestTopic, setQuestTopic] = useState(questoes[0]);
+    const [QuestSubTopic, setQuestSubTopic] = useState({});
     const [Quantity, setQuantity] = useState(0);
 
 
@@ -42,12 +45,12 @@ export const NewQuest = ({ navigation }) => {
         try {
 
             console.log(QuestTopic);
-            
+
             const collectionString = storage.getString(questList)
-            
+
             console.log(QuestTopic);
-            
-           
+
+
             const Quests = collectionString ? JSON.parse(collectionString) : [];
             let newKey = uuidv4();
             let QuestRef = {
@@ -57,8 +60,9 @@ export const NewQuest = ({ navigation }) => {
                 completed: false,
                 class: questList,
                 quantity: Quantity,
-                topic: QuestTopic,
-                reward: Quantity * QuestTopic.xp
+                topic: QuestTopic.materia,
+                subTopic: QuestSubTopic,
+                reward: Quantity * QuestSubTopic.xp
 
             }
 
@@ -79,8 +83,8 @@ export const NewQuest = ({ navigation }) => {
             //     description: questDescription
             // });
 
-            setQuestName('');
-            setQuestDescription('');
+            // setQuestName('');
+            // setQuestDescription('');
 
 
 
@@ -100,8 +104,43 @@ export const NewQuest = ({ navigation }) => {
     const handleChangeTopic = (event) => {
         setQuestTopic(event.target.value);
 
+
     };
 
+    const handleChangeTopicSubTopic = (event) => {
+        setQuestSubTopic(event.target.value);
+
+    };
+
+    useEffect(() => {
+        console.log("Valor atualizado de QuestTopic: ", QuestTopic);
+        console.log("Valor atualizado de QuestSubTopic: ", QuestSubTopic);
+
+    }, [QuestTopic]); // Isso será executado sempre que o estado QuestTopic mudar
+
+
+    useFocusEffect(
+        useCallback(() => {
+            // Função a ser executada ao mudar para esta tela
+            console.log('Tela ativada');
+            questoes.forEach(quest => {
+                setQuestName('');
+                setQuestDescription('');
+
+                console.log(quest);
+            })
+            console.log();
+
+
+            // Retorna uma função de limpeza se necessário
+            return () => {
+                setQuestName('');
+                setQuestDescription('');
+
+                console.log('Saindo da tela');
+            };
+        }, [])
+    );
 
 
 
@@ -155,7 +194,7 @@ export const NewQuest = ({ navigation }) => {
                         </Select>
                     </FormControl>
                 </View>
-                <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+                <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
 
                     <FormControl variant="standard" sx={{ m: 1, minWidth: 120, }}>
 
@@ -179,23 +218,132 @@ export const NewQuest = ({ navigation }) => {
                         >
 
                             {
-                                Questoes.matematica.map((item) => (
+                                questoes.map((item) => (
                                     <MenuItem value={item}>
-                                        {item.topico}
+                                        {item.materia}
                                     </MenuItem>
                                 ))
                             }
-                            <MenuItem value='Redação'>
-                                Redação
-                            </MenuItem>
+
 
                         </Select>
                     </FormControl>
+
+                    {QuestTopic.materia !== 'Redação' &&
+
+                        <FormControl variant="standard" sx={{ m: 1, minWidth: 120, }}>
+
+                            <Select
+                                labelId="demo-simple-select-standard-label"
+                                id="demo-simple-select-standard"
+                                value={QuestSubTopic}
+                                onChange={handleChangeTopicSubTopic}
+
+                                style={{ color: 'white', fontSize: 25 }}
+                                inputProps={{ 'aria-label': 'Without label', }}
+                                MenuProps={{
+                                    PaperProps: {
+                                        sx: {
+                                            backgroundColor: '#031b40',
+                                            color: 'white', // Fundo transparente
+                                            fontSize: 25,
+                                        },
+                                    },
+                                }}
+                            >
+
+                                {
+                                    QuestTopic.topicos.map((item) => (
+                                        <MenuItem value={item}>
+                                            {item.topico}
+                                        </MenuItem>
+                                    ))
+                                }
+
+
+                            </Select>
+                        </FormControl>}
                 </View>
 
-                <TextInput placeholder='Quantidade de exercícios' onChangeText={(e) => setQuantity( parseInt(e))} />
-                <TextInput placeholder='Digite o nome da missão' style={styles.questName} onChangeText={(questName) => setQuestName(questName)} />
-                <TextInput placeholder='Descrição' style={styles.questDescription} multiline={true} onChangeText={(questDescription) => setQuestDescription(questDescription)} />
+                <TextField
+                    id="filled-number"
+                    label="Número de exercícios / Tempo em minutos"
+                    type="number"
+                    variant="filled"
+                    sx={{
+                        '& .MuiInputBase-input': {
+                            color: 'white', // Cor da fonte do input
+                        },
+                        '& .MuiInputLabel-root': {
+                            color: 'white', // Cor da fonte do label
+                        },
+
+                    }}
+                    onChange={(e) => { setQuantity(parseInt(e.target.value)) }}
+
+                />
+
+                <TextField
+                    id="filled-number"
+                    label="Nome da missão"
+                    type="text"
+                    variant="filled"
+
+                    sx={{
+                        '& .MuiInputBase-input': {
+                            color: 'white', // Cor da fonte do input
+                        },
+                        '& .MuiInputLabel-root': {
+                            color: 'white', // Cor da fonte do label
+                        },
+
+
+
+                    }}
+                    onChange={(e) => { setQuestName(e.target.value) }}
+
+                />
+
+                <TextField
+                    id="filled-number"
+                    label="Descrição"
+                    type="text"
+                    variant="filled"
+                    multiline={true}
+                    sx={{
+                        '& .MuiInputBase-input': {
+                            color: 'white', // Cor da fonte do input
+                        },
+                        '& .MuiInputLabel-root': {
+                            color: 'white', // Cor da fonte do label
+                        },
+
+                        flex: 1
+
+                    }}
+                    onChange={(e) => { setQuestDescription(e.target.value) }}
+
+                />
+
+
+                {/* <TextInput 
+                placeholder='Quantidade de exercícios' 
+                style={styles.questName} 
+                onChangeText={(e) => setQuantity(parseInt(e))} />
+
+                <TextInput 
+                placeholder='Digite o nome da missão' 
+                style={styles.questName} 
+                onChangeText={(questName) => setQuestName(questName)}
+
+                 />
+
+                <TextInput 
+                placeholder='Descrição' 
+                style={styles.questDescription} 
+                multiline={true} 
+                onChangeText={(questDescription) => setQuestDescription(questDescription)}
+                 /> */}
 
 
                 <TouchableOpacity style={styles.questButton} onPress={() => addQuest()}>

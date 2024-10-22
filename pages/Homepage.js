@@ -102,6 +102,12 @@ export const Homepage = ({ navigation }) => {
         QuestsQuery(item.class);
     }
 
+    const setCompletedList = (item) => {
+        updateQuery.updateQuests(item, item.name, item.description, 'completedQuests', true, item.quantity, item.topic)
+        QuestsQuery();
+
+    }
+
 
     useFocusEffect(
         useCallback(() => {
@@ -153,12 +159,12 @@ export const Homepage = ({ navigation }) => {
                         <Scrollbar>
                             <FlatList
                                 data={Quests}
-                                keyExtractor={(item) => item.id}
+                       
                                 renderItem={({ item }) => (
 
 
                                     <View style={styles.questButton}>
-                                        <Checkbox style={{ marginRight: 10 }} onChange={() => {updateQuery.updateQuests(item, item.name, item.description, 'completedQuests', true, item.quantity)}} />
+                                        <Checkbox style={{ marginRight: 10 }} onChange={() => {setCompletedList(item)}} />
 
                                         <TouchableOpacity style={{ flex: 1 }}
 
