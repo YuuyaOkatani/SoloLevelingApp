@@ -10,7 +10,7 @@ import { Checkbox } from '@mui/material'
 import { MMKV } from 'react-native-mmkv'
 import { DBquery } from '../functions/DBquery'
 import { useFocusEffect } from '@react-navigation/native'
-import { RemoveCircle } from '@mui/icons-material'
+import { RemoveCircle, Settings } from '@mui/icons-material'
 // import Animated from 'react-native-reanimated'
 
 export const Homepage = ({ navigation }) => {
@@ -127,6 +127,11 @@ export const Homepage = ({ navigation }) => {
     return (
         <View style={styles.container}>
             <View style={styles.container1}>
+                <View style={{flexDirection: 'row-reverse'}}>
+                    <TouchableOpacity onPress={() => navigation.navigate('SettingsPage')}>
+                        <Settings style={{ fontSize: 25, color: 'white', margin: 6 }} />
+                    </TouchableOpacity>
+                </View>
                 <View style={styles.containerStats}>
                     <View style={styles.statsBox}   >
                         <Text style={styles.textStyle}>
@@ -236,6 +241,7 @@ const styles = StyleSheet.create({
     containerStats: {
 
         flexDirection: 'row',
+        padding: 15
     },
     statsBox: {
         flex: 1,
