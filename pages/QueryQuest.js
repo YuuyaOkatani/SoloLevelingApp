@@ -5,7 +5,7 @@ import { collection, getDocs } from '@firebase/firestore'
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native'
 import Scrollbar from 'react-scrollbars-custom'
 import { useEffect, useState } from 'react'
-import { Checkbox, FormControl, InputLabel, MenuItem, Select } from '@mui/material'
+import { Checkbox, FormControl, InputLabel, MenuItem, Select, TextField } from '@mui/material'
 import { Close, RemoveCircle } from '@mui/icons-material'
 import { MMKV } from 'react-native-mmkv';
 import { DBquery } from '../functions/DBquery';
@@ -16,6 +16,14 @@ export const QueryQuest = ({ navigation }) => {
     const [Quests, setQuests] = useState([]);
     const [questList, setQuestList] = useState('');
     const [deleteState, setDeleteState] = useState(false);
+    const [notaRedacao, setNotaRedacao] = useState(0);
+
+    const [level, setLevel] = useState(1);
+    const [currentXP, setCurrentXP] = useState(0);
+    const [nedeedXP, setNedeedXP] = useState(0);
+
+    const [isChecked, setChecked] = useState(false);
+
     const updateQuery = new DBquery();
     const QuestsQuery = async (collectionName) => {
         // const collectionRef = collection(db, collectionName);
@@ -42,16 +50,43 @@ export const QueryQuest = ({ navigation }) => {
         }
     }
 
+    const checkLevel = () => {
+        let ActualLevel = 1
+        let totalXP = updateQuery.setScore();
+
+
+
+        let letCurrentXP = totalXP[totalXP.length - 1].totalScore
+        let s = 100 * ActualLevel
+
+
+
+
+        while (letCurrentXP >= s) {
+
+
+            ActualLevel++
+            letCurrentXP -= s
+            s = 100 * ActualLevel;
+
+            // setCurrentXP(currentXP - nedeedXP)
+        }
+        setLevel(ActualLevel)
+        setCurrentXP(letCurrentXP)
+        setNedeedXP(100 * ActualLevel)
+
+    }
+
 
 
     const QuestDetails = (item) => {
-        console.log(item);
+
         setDeleteState(false);
         navigation.navigate('QuestDetails', item);
     }
 
     const deleteQuestF = (item) => {
-        console.log(item);
+     
         updateQuery.deleteQuest(item);
         QuestsQuery(item.class);
     }
@@ -62,15 +97,26 @@ export const QueryQuest = ({ navigation }) => {
         setDeleteState(false);
     };
 
+    const setCompletedList = (item) => {
+        updateQuery.updateQuests(item, item.name, item.description, 'completedQuests', true, notaRedacao != 0 ? notaRedacao : item.quantity, item.subTopic, item.topic)
+        QuestsQuery(questList);
+        checkLevel()
+    }
+
+    const Repeatable = () => {
+
+    }
+
+
     useFocusEffect(
         useCallback(() => {
             // Função a ser executada ao mudar para esta tela
-            console.log('Tela ativada');
+   
             QuestsQuery('mainQuests'); // Carrega os dados da coleção principal quests quando a tela é ativada
             setQuestList('mainQuests');
             // Retorna uma função de limpeza se necessário
             return () => {
-                console.log('Saindo da tela');
+               
             };
         }, [])
     );
@@ -137,24 +183,56 @@ export const QueryQuest = ({ navigation }) => {
                         keyExtractor={item => item.id}
                         renderItem={({ item }) => (
                             <View style={styles.questButton}>
-                                <Checkbox />
+                                {/* {   questList != 'completedQuests' &&
+                                    <Checkbox  onChange={() => {setCompletedList(item), questList != 'dailyQuests' && setChecked(!isChecked)}} checked={isChecked} />
+                                } */}
+                                {questList != 'completedQuests' &&
+                                    <Checkbox onChange={() => { setCompletedList(item) }} />
+                                }
 
-                                <TouchableOpacity
-                                    onPress={() => QuestDetails(item)}
-                                    onLongPress={() => setDeleteState(!deleteState)}
-                                    style={{ flex: 1 }}
-                                    
-
-                                >
-
-                                    <Text style={{ color: 'white', fontSize: 25 }}>{item.name || 'error '}</Text>
+                                <View style={{flex: 1}}>
+                                    <TouchableOpacity
+                                        onPress={() => QuestDetails(item)}
+                                        onLongPress={() => setDeleteState(!deleteState)}
+                                        style={{ flex: 1 }}
 
 
-                                </TouchableOpacity>
+                                    >
+
+                                        <Text style={{ color: 'white', fontSize: 25 }}>Fazer {item.quantity} {item.topic == 'Exercícios Físicos' || "exercícios de"} {item.subTopic.topico}</Text>
+
+
+                                    </TouchableOpacity>
+                                    {item.topic == 'Redação' &&
+                                        <TextField  
+                                            id="filled-number"
+                                            label="Nota"
+                                            type="number"
+                                            variant="filled"
+
+                                            sx={{
+                                                '& .MuiInputBase-input': {
+                                                    color: 'white', // Cor da fonte do input
+                                                },
+                                                '& .MuiInputLabel-root': {
+                                                    color: 'white', // Cor da fonte do label
+                                                },
+                                                '& .MuiFormHelperText-root': {
+                                                    color: 'white', // Muda a cor do helperText
+
+                                                },
+
+                                            }}
+                                            onChange={(e) => { setNotaRedacao(e.target.value) }}
+                                            required
+
+                                        />
+                                    }
+                                </View>
 
                                 {deleteState &&
 
-                                    <View style={{marginHorizontal: 15}}>
+                                    <View style={{ marginHorizontal: 15 }}>
                                         <TouchableOpacity onPress={() => deleteQuestF(item)}>
                                             <RemoveCircle style={{ color: 'red', fontSize: 30 }} />
                                         </TouchableOpacity>
@@ -168,7 +246,7 @@ export const QueryQuest = ({ navigation }) => {
 
                 </Scrollbar>
 
-                <TouchableOpacity style={styles.addQuestButton} onPress={() => navigation.navigate('NewQuest')}>
+                <TouchableOpacity style={styles.addQuestButton} onPress={() => navigation.navigate('NewQuest', questList)}>
                     <Text style={{ color: 'white', fontSize: 20 }}>Add Quest</Text>
                 </TouchableOpacity>
 
@@ -208,7 +286,8 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         marginTop: 30,
         marginHorizontal: 5,
-        height: 70
+        height: 'auto',
+        padding: 10
     },
 
     addQuestButton: {

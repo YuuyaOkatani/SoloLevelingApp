@@ -2,6 +2,8 @@ export const questoes = [
   {
     id: 1,
     materia: "Matemática",
+    color1: 'white',
+    color2: '#05cff7',
     topicos: [
       { id: 1, topico: "Razão e Proporção", xp: 10 },
       { id: 2, topico: "Aritmética", xp: 20 },
@@ -24,6 +26,9 @@ export const questoes = [
   },
   {
     id: 2,
+    color1: 'white',
+    color2: 'red', 
+
     materia: "Física",
     topicos: [
       { id: 18, topico: "Mecânica (Cinemática Escalar e Vetorial)", xp: 10 },
@@ -46,6 +51,8 @@ export const questoes = [
   },
   {
     id: 3,
+    color1: 'white',
+    color2: '#05f796', 
     materia: "Química",
     topicos: [
       { id: 34, topico: "Sistemas Materiais", xp: 10 },
@@ -73,6 +80,8 @@ export const questoes = [
   },
   {
     id: 4,
+    color1: 'white',
+    color2: '#09f705',
     materia: "Biologia",
     topicos: [
       { id: 55, topico: "Origem da Vida e do Universo", xp: 10 },
@@ -105,6 +114,8 @@ export const questoes = [
   },
   {
     id: 5,
+    color1: 'white',
+    color2: '#6e05f7', 
     materia: "Geografia",
     topicos: [
       { id: 81, topico: "Cartografia", xp: 10 },
@@ -127,6 +138,8 @@ export const questoes = [
   },
   {
     id: 6,
+    color1 : 'white',
+    color2: '#fc5805',
     materia: "História",
     topicos: [
       { id: 97, topico: "Antiguidade Oriental - Egito, Mesopotâmia e Outras Civilizações", xp: 10 },
@@ -149,14 +162,18 @@ export const questoes = [
   },
   {
     id: 7,
+    color1: 'white',
+    color2: '#333232',  // Black
     materia: "Redação",
     topicos: [
-      { id: 113, topico: null, xp: 100 },
+      { id: 113, topico: "Redação", xp: 1 },
     ]
   },
 
   {
     id: 8,
+    color1: 'white',
+    color2: '#081252',
     materia: "Exercícios Físicos",
     topicos: [
       { topico: "Flexão", xp: 10 },

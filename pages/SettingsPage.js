@@ -1,69 +1,194 @@
-import { Backup, QueryStats } from '@mui/icons-material'
-import React from 'react'
+import { ArrowBackIos, Backup, Close, QueryStats, SaveAs } from '@mui/icons-material'
+import React, { useState } from 'react'
 import { StyleSheet, View } from 'react-native'
 import { TouchableOpacity, Text } from 'react-native'
-import {database, db } from '../api/firebaseConfig';
-import { ref, set } from 'firebase/database';
+import { database, db } from '../api/firebaseConfig';
+import { child, get, ref, remove, set, update, } from 'firebase/database';
 import { MMKV } from 'react-native-mmkv'
 import { DBquery } from '../functions/DBquery';
 const { v4: uuidv4 } = require('uuid');
-export const SettingsPage = ({navigation}) => {
+export const SettingsPage = ({ navigation }) => {
 
     const storage = new MMKV()
-
+    const [deleteDocument, setDeleteDocument] = useState(false)
+    const [sure, setSure] = useState(false)
     const updateQuery = new DBquery();
-    const createDocument = (name, email) => {
+    const createDocument = () => {
         const allData = storage.getAllKeys();
-        console.log(allData);
+
         let num = 0
-        allData.forEach((key) => {
+        allData.forEach(async (key) => {
             let quests = updateQuery.getQuests(key);
-            
-            console.log(`Quests n${num} : `, quests);
+
+
             num++
 
-            set(ref(database, '/main/' + key ), {
+            // const refs = get(ref(database, '/main'))
+
+            await remove(ref(database, '/main/'))
+
+            update(ref(database, '/main/' + key), {
                 quests
-            
-            
-          
             })
-            .then(() => {
-              console.log("Documento criado com sucesso!");
-            })
-            .catch((error) => {
-              console.error("Erro ao criar documento: ", error);
-            });
-            
-            
+                .then(() => {
+                    console.log("Documento criado com sucesso!");
+                })
+                .catch((error) => {
+                    console.error("Erro ao criar documento: ", error);
+                });
+
+
         })
         let newKey = uuidv4();
-        
-      };
-      
+
+    };
+
+    const Recover = async () => {
+        try {
+
+            const snapshot = await get(ref(database, '/main'))
+            let snapshotGetted = snapshot.val()
+            if (snapshot.val()) {
+                // snapshot.val().forEach(
+                //     element => snapshotGetted.push(element))
+                let collectedData = [
+                    { list: "mainQuests", ...snapshotGetted.mainQuests, },
+                    { list: "currentQuests", ...snapshotGetted.currentQuests, },
+                    { list: "completedQuests", ...snapshotGetted.completedQuests, },
+                    { list: "dailyQuests", ...snapshotGetted.dailyQuests, },
+                    { list: "sideQuests", ...snapshotGetted.sideQuests, },
+                    // { list: "bossQuests",  ...snapshotGetted.bossQuests, },
+
+                    // snapshotGetted.bossQuests,
+                    // snapshotGetted.quests
+
+                ]
+
+
+                collectedData.forEach(element => {
+                    if (element.quests) {
+               
+                        storage.set(element.list, JSON.stringify(element.quests))
+                    }
+                    else {
+            
+                        storage.delete(element.list)
+               
+                    }
+                })
+
+                // const bossQuests = updateQuery.getQuests('bossQuests')
+                // const quests = updateQuery.getQuests('quests')
+
+
+
+
+                // storage.set('mainQuests', JSON.stringify(collectedData[0]))
+                // storage.set('currentQuests', JSON.stringify(collectedData[1]))
+                // storage.set('completedQuests', JSON.stringify(collectedData[2]))
+                // storage.set('dailyQuests', JSON.stringify(collectedData[3]))
+                // storage.set('sideQuests', JSON.stringify(collectedData[4]))
+
+                const mainQuests = updateQuery.getQuests('mainQuests')
+                const currentQuests = updateQuery.getQuests('currentQuests')
+                const completedQuests = updateQuery.getQuests('completedQuests')
+                const dailyQuests = updateQuery.getQuests('dailyQuests')
+                const sideQuests = updateQuery.getQuests('sideQuests')
+                const levels = updateQuery.getQuests('levels')
+
+
+
+            }
+            // snapshotGetted.forEach(element => {
+            //     console.log(element);
+
+            // })
+
+        } catch (error) {
+            console.log("Erro ao tentar acessar dados: ", error);
+
+
+        }
+    }
+
     return (
 
         <View style={styles.container}>
             <View style={styles.container1}>
-                <TouchableOpacity
-                    style={styles.button}
-                    onPress={() => createDocument("meme", "memeEmail")}
+                <View style={{ flexDirection: 'row', marginBottom: 50 }}>
+                    <TouchableOpacity onPress={() => navigation.goBack()}>
+                        <ArrowBackIos style={{ fontSize: 25, color: 'white', margin: 6 }} />
+                    </TouchableOpacity>
+                </View>
+                <View style={styles.container2}>
+                    <TouchableOpacity
+                        style={styles.button}
+                        onPress={() => createDocument()}
 
-                >
-                    <Text>Sincronizar</Text>
-                    <Backup />
+                    >
+                        <Text>Save progress 💾</Text>
+                        <Backup />
 
-                </TouchableOpacity>
+                    </TouchableOpacity>
+                    {!sure &&
+                        <TouchableOpacity
+                            style={styles.button}
+                            onPress={() => setSure(!sure)}
 
-                <TouchableOpacity
-                onPress={() => navigation.navigate('StatusPage')}
-                    style={styles.button}
+                        >
+                            <Text>Checkout 💿</Text>
+                            <SaveAs />
 
-                >
-                    <Text>Stats</Text>
-                    <QueryStats/>
+                        </TouchableOpacity> ||
 
-                </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[styles.button, {backgroundColor: 'blue'}]}
+                            onPress={() => {Recover(), setSure(!sure)}}
+
+                        >
+                            <Text style={{color: 'white'}}>Are you sure to checkout? 💿</Text>
+                            <SaveAs />
+
+                        </TouchableOpacity>
+                    }
+
+                    <TouchableOpacity
+                        onPress={() => navigation.navigate('StatusPage')}
+                        style={styles.button}
+
+                    >
+                        <Text>Stats</Text>
+                        <QueryStats />
+
+                    </TouchableOpacity>
+
+                    {
+                        !deleteDocument &&
+                        <TouchableOpacity
+                            onPress={() => setDeleteDocument(!deleteDocument)}
+                            style={styles.button}
+
+                        >
+                            <Text> Apagar tudo</Text>
+                            <Close />
+
+
+                        </TouchableOpacity> ||
+
+                        <TouchableOpacity
+                            onPress={() => { setDeleteDocument(!deleteDocument), storage.clearAll(), updateQuery.setScore(), updateQuery.deleteAll() }}
+                            style={[styles.button, { backgroundColor: 'red' }]}
+
+                        >
+                            <Text> Apagar tudo mesmo?</Text>
+                            <Close />
+
+
+
+                        </TouchableOpacity>
+
+                    }
+                </View>
 
             </View>
         </View>
@@ -84,18 +209,23 @@ const styles = StyleSheet.create({
         padding: 10,
         borderWidth: 1,
         borderColor: '#a1c2f7',
+
+
+    },
+
+    container2: {
         justifyContent: 'center',
         alignItems: 'center',
-        gap: 10
+        gap: 30
     },
 
     button: {
-        borderWidth: 1, 
+        borderWidth: 1,
         borderColor: 'white',
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: 'lightblue',
-        width: 200,
+        width: 250,
         height: 50,
         borderRadius: 10,
         borderWidth: 1,

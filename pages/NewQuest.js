@@ -3,33 +3,37 @@ import { useCallback, useEffect, useState } from 'react'
 // import { addDoc, collection, getDocs } from '@firebase/firestore'
 // import { db } from '../api/firebaseConfig'
 import { Close } from '@mui/icons-material'
-import { FormControl, InputLabel, MenuItem, Select, TextField } from '@mui/material'
+import { FormControl, FormHelperText, InputLabel, MenuItem, Select, TextField } from '@mui/material'
 import { MMKV } from 'react-native-mmkv'
 import { DBquery } from '../functions/DBquery'
 const { v4: uuidv4 } = require('uuid');
 
 import { questoes } from '../functions/System'
 import { useFocusEffect } from '@react-navigation/native'
+import { update } from 'firebase/database'
 
 
 
-export const NewQuest = ({ navigation }) => {
+export const NewQuest = ({ route, navigation }) => {
 
     const storage = new MMKV()
     const updateQuery = new DBquery();
+    let questList = route.params
 
-
-    const [questList, setQuestList] = useState('mainQuests');
+    // const [questList, setQuestList] = useState('mainQuests');
     const [questName, setQuestName] = useState('');
     const [questDescription, setQuestDescription] = useState('');
-
     const [QuestTopic, setQuestTopic] = useState(questoes[0]);
     const [QuestSubTopic, setQuestSubTopic] = useState({});
     const [Quantity, setQuantity] = useState(0);
+    const [error, setError] = useState(false);
 
 
 
 
+
+
+    
 
     // const buffer = new ArrayBuffer(3)
     // const dataWriter = new Uint8Array(buffer)
@@ -42,50 +46,77 @@ export const NewQuest = ({ navigation }) => {
     // console.log(buffer) // [1, 100, 255]
 
     const addQuest = () => {
+
+        let topico = undefined
+
+        
+       
+        
         try {
 
-            console.log(QuestTopic);
 
-            const collectionString = storage.getString(questList)
+           
 
-            console.log(QuestTopic);
+            
+            
+            
+            if (!QuestTopic.materia || !QuestSubTopic.topico  || !Quantity) {
+                
+                setError(true)
+                return
+            }
+            else {
+                setError(false)
 
 
-            const Quests = collectionString ? JSON.parse(collectionString) : [];
-            let newKey = uuidv4();
-            let QuestRef = {
-                id: newKey,
-                name: questName,
-                description: questDescription,
-                completed: false,
-                class: questList,
-                quantity: Quantity,
-                topic: QuestTopic.materia,
-                subTopic: QuestSubTopic,
-                reward: Quantity * QuestSubTopic.xp
+                const collectionString = storage.getString(questList)
+
+
+
+                let date = new Date();
+       
+                
+
+                const Quests = collectionString ? JSON.parse(collectionString) : [];
+                let newKey = uuidv4();
+                let QuestRef = {
+                    id: newKey,
+                    name: questName,
+                    description: questDescription,
+                    completed: false,
+                    class: questList,
+                    quantity: Quantity,
+                    topic: QuestTopic.materia,
+                    subTopic: QuestSubTopic || topico ,
+                    reward: Quantity * QuestSubTopic.xp ,
+                    createAt: date
+
+
+                }
+
+                
+
+                Quests.push(QuestRef);
+                storage.set(questList, JSON.stringify(Quests));
+
+
+    
+
+
+
+
+
+
+                // const collectionRef = collection(db, questList);
+                // addDoc(collectionRef, {
+                //     name: questName,
+                //     description: questDescription
+                // });
+
+                // setQuestName('');
+                // setQuestDescription('');
 
             }
-
-            Quests.push(QuestRef);
-            storage.set(questList, JSON.stringify(Quests));
-
-
-            console.log(Quests);
-
-
-
-
-
-
-            // const collectionRef = collection(db, questList);
-            // addDoc(collectionRef, {
-            //     name: questName,
-            //     description: questDescription
-            // });
-
-            // setQuestName('');
-            // setQuestDescription('');
-
 
 
         } catch (error) {
@@ -96,13 +127,24 @@ export const NewQuest = ({ navigation }) => {
     }
 
 
-    const handleChange = (event) => {
-        setQuestList(event.target.value);
+    // const handleChange = (event) => {
+    //     setQuestList(event.target.value);
 
-    };
+    // };
 
     const handleChangeTopic = (event) => {
-        setQuestTopic(event.target.value);
+        let data = event.target.value;
+        setQuestTopic(data);
+
+        
+        if(data.materia == 'Redação'){
+            setQuestSubTopic(data.topicos[0]);
+            setQuantity(1) 
+            
+            
+            
+        }
+        
 
 
     };
@@ -112,24 +154,33 @@ export const NewQuest = ({ navigation }) => {
 
     };
 
+    
     useEffect(() => {
-        console.log("Valor atualizado de QuestTopic: ", QuestTopic);
-        console.log("Valor atualizado de QuestSubTopic: ", QuestSubTopic);
+        console.log("Algo deu errado");
+        
+    }, [error])
+   
 
-    }, [QuestTopic]); // Isso será executado sempre que o estado QuestTopic mudar
+    const handleTopic = () => {
+
+    }
+
+    const handleQuantity = () => {
+
+    }
 
 
     useFocusEffect(
         useCallback(() => {
             // Função a ser executada ao mudar para esta tela
-            console.log('Tela ativada');
+   
             questoes.forEach(quest => {
                 setQuestName('');
                 setQuestDescription('');
 
-                console.log(quest);
+   
             })
-            console.log();
+
 
 
             // Retorna uma função de limpeza se necessário
@@ -137,7 +188,7 @@ export const NewQuest = ({ navigation }) => {
                 setQuestName('');
                 setQuestDescription('');
 
-                console.log('Saindo da tela');
+        
             };
         }, [])
     );
@@ -153,7 +204,7 @@ export const NewQuest = ({ navigation }) => {
                         <Close style={{ color: 'white' }} />
                     </TouchableOpacity>
                 </View>
-                <View style={{ justifyContent: 'center', alignItems: 'center' }}>
+                {/* <View style={{ justifyContent: 'center', alignItems: 'center' }}>
 
                     <FormControl variant="standard" sx={{ m: 1, minWidth: 120, }}>
 
@@ -193,7 +244,7 @@ export const NewQuest = ({ navigation }) => {
 
                         </Select>
                     </FormControl>
-                </View>
+                </View> */}
                 <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
 
                     <FormControl variant="standard" sx={{ m: 1, minWidth: 120, }}>
@@ -203,7 +254,7 @@ export const NewQuest = ({ navigation }) => {
                             id="demo-simple-select-standard"
                             value={QuestTopic}
                             onChange={handleChangeTopic}
-
+                            error={error}
                             style={{ color: 'white', fontSize: 25 }}
                             inputProps={{ 'aria-label': 'Without label', }}
                             MenuProps={{
@@ -227,6 +278,11 @@ export const NewQuest = ({ navigation }) => {
 
 
                         </Select>
+                        <FormHelperText
+                                sx={{ color: 'white' }}>
+                                {error && 'Seleção obrigatória'}
+
+                            </FormHelperText>
                     </FormControl>
 
                     {QuestTopic.materia !== 'Redação' &&
@@ -238,7 +294,7 @@ export const NewQuest = ({ navigation }) => {
                                 id="demo-simple-select-standard"
                                 value={QuestSubTopic}
                                 onChange={handleChangeTopicSubTopic}
-
+                                error={error}
                                 style={{ color: 'white', fontSize: 25 }}
                                 inputProps={{ 'aria-label': 'Without label', }}
                                 MenuProps={{
@@ -262,14 +318,22 @@ export const NewQuest = ({ navigation }) => {
 
 
                             </Select>
+                            <FormHelperText
+                                sx={{ color: 'white' }}>
+                                {error && 'Seleção obrigatória'}
+
+                            </FormHelperText>
                         </FormControl>}
                 </View>
 
-                <TextField
+                { QuestTopic.materia != 'Redação' &&
+                    <TextField
                     id="filled-number"
                     label="Número de exercícios / Tempo em minutos"
                     type="number"
                     variant="filled"
+                    error={error}
+                    helperText={error ? 'Este campo é obrigatório' : ''}
                     sx={{
                         '& .MuiInputBase-input': {
                             color: 'white', // Cor da fonte do input
@@ -277,11 +341,17 @@ export const NewQuest = ({ navigation }) => {
                         '& .MuiInputLabel-root': {
                             color: 'white', // Cor da fonte do label
                         },
+                        '& .MuiFormHelperText-root': {
+                            color: 'white', // Muda a cor do helperText
+
+                        },
 
                     }}
                     onChange={(e) => { setQuantity(parseInt(e.target.value)) }}
+                    required
 
                 />
+                }
 
                 <TextField
                     id="filled-number"
@@ -346,7 +416,7 @@ export const NewQuest = ({ navigation }) => {
                  /> */}
 
 
-                <TouchableOpacity style={styles.questButton} onPress={() => addQuest()}>
+                <TouchableOpacity style={styles.addQuestButton} onPress={() => addQuest()}>
                     <Text style={{ color: 'white', fontSize: 20 }}>Add Quest</Text>
                 </TouchableOpacity>
             </View>
@@ -375,7 +445,18 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
     },
 
-    questButton: {
+    // questButton: {
+    //     borderWidth: 1,
+    //     borderColor: 'white',
+    //     alignItems: 'center',
+    //     flexDirection: 'row',
+    //     marginTop: 30,
+    //     marginHorizontal: 5,
+    //     height: 'auto', 
+    //     padding: 10
+    // },
+
+    addQuestButton: {
         justifyContent: 'center',
         alignItems: 'center',
         marginTop: 30,

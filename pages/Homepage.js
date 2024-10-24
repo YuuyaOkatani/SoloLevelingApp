@@ -6,7 +6,7 @@ import { useCallback, useEffect, useState } from 'react'
 import AddIcon from '@mui/icons-material/Add';
 import { TouchableOpacity } from 'react-native'
 import Scrollbar from 'react-scrollbars-custom'
-import { Checkbox } from '@mui/material'
+import { Checkbox, TextField } from '@mui/material'
 import { MMKV } from 'react-native-mmkv'
 import { DBquery } from '../functions/DBquery'
 import { useFocusEffect } from '@react-navigation/native'
@@ -21,7 +21,10 @@ export const Homepage = ({ navigation }) => {
     const [deleteState, setDeleteState] = useState(false);
     const [Quests, setQuests] = useState([]);
     const [error, setError] = useState(false);
-
+    const [level, setLevel] = useState(1);
+    const [currentXP, setCurrentXP] = useState(0);
+    const [nedeedXP, setNedeedXP] = useState(0);
+    const [notaRedacao, setNotaRedacao] = useState(0);
     const updateQuery = new DBquery();
 
     const QuestsQuery = () => {
@@ -40,8 +43,8 @@ export const Homepage = ({ navigation }) => {
             setQuests(currentQuests);
 
             updateQuery.setScore();
+            checkLevel()
 
-            
 
 
 
@@ -52,30 +55,67 @@ export const Homepage = ({ navigation }) => {
         }
     }
 
+    // const levelQuery = () => {
+    //     let currentLevel = updateQuery.setScore();
+    //     let nedeedXP = 100 * level
+    //     let formula = currentLevel[currentLevel.length - 1].totalScore / nedeedXP
+    //     if(formula >= level){
+    //         setLevel(level + 1)
+    //         setCurrentXP(currentLevel[currentLevel.length - 1].totalScore - nedeedXP)
+    //     }
+    // }
+
+    const checkLevel = () => {
+        let ActualLevel = 1
+        let totalXP = updateQuery.setScore();
 
 
-    const containUndefinedOrNull = () => {
-   
-        let Quests = []
-        storage.getAllKeys().forEach(key => {
-            let stringKey = storage.getString(key)
-            Quests = stringKey ? JSON.parse(stringKey) : [];
-            Quests.forEach(quest => {
 
-                if (quest === undefined || quest === null) {
-                    setError(true);
-                    deleteAll()
-                }
-                else{
-                    setError(false);
-                }
-            })
-            console.log(Quests);
-        });
-        
-       
-        
+        let letCurrentXP = totalXP[totalXP.length - 1].totalScore
+        let s = 100 * ActualLevel
+
+
+
+
+        while (letCurrentXP >= s) {
+
+
+            ActualLevel++
+            letCurrentXP -= s
+            s = 100 * ActualLevel;
+
+            // setCurrentXP(currentXP - nedeedXP)
+        }
+        setLevel(ActualLevel)
+        setCurrentXP(letCurrentXP)
+        setNedeedXP(100 * ActualLevel)
+
     }
+
+
+
+    // const containUndefinedOrNull = () => {
+
+    //     let QuestsT = []
+    //     storage.getAllKeys().forEach(key => {
+    //         let stringKey = storage.getString(key)
+    //         QuestsT = stringKey ? JSON.parse(stringKey) : [];
+    //         QuestsT.forEach(quest => {
+
+    //             if (quest === undefined || quest === null) {
+    //                 setError(true);
+    //                 deleteAll()
+    //             }
+    //             else {
+    //                 setError(false);
+    //             }
+    //         })
+    //         console.log(Quests);
+    //     });
+
+
+
+    // }
 
 
     const deleteAll = () => {
@@ -91,34 +131,35 @@ export const Homepage = ({ navigation }) => {
 
 
     const QuestDetails = (item) => {
-        console.log(item);
+
         setDeleteState(false);
         navigation.navigate('QuestDetails', item);
     }
 
     const deleteQuestF = (item) => {
-        console.log(item);
+
         updateQuery.deleteQuest(item);
         QuestsQuery(item.class);
     }
 
     const setCompletedList = (item) => {
-        updateQuery.updateQuests(item, item.name, item.description, 'completedQuests', true, item.quantity, item.topic)
+        updateQuery.updateQuests(item, item.name, item.description, 'completedQuests', true, notaRedacao != 0 ? notaRedacao : item.quantity, item.subTopic, item.topic)
         QuestsQuery();
-
+        checkLevel()
     }
 
 
     useFocusEffect(
         useCallback(() => {
             // Função a ser executada ao mudar para esta tela
-            console.log('Tela ativada');
+          
             QuestsQuery();
-            containUndefinedOrNull();
-           
+            // containUndefinedOrNull();
+            checkLevel();
+            // deleteAll()
             // Retorna uma função de limpeza se necessário
             return () => {
-                console.log('Saindo da tela');
+              
             };
         }, [])
     );
@@ -127,7 +168,7 @@ export const Homepage = ({ navigation }) => {
     return (
         <View style={styles.container}>
             <View style={styles.container1}>
-                <View style={{flexDirection: 'row-reverse'}}>
+                <View style={{ flexDirection: 'row-reverse' }}>
                     <TouchableOpacity onPress={() => navigation.navigate('SettingsPage')}>
                         <Settings style={{ fontSize: 25, color: 'white', margin: 6 }} />
                     </TouchableOpacity>
@@ -135,14 +176,14 @@ export const Homepage = ({ navigation }) => {
                 <View style={styles.containerStats}>
                     <View style={styles.statsBox}   >
                         <Text style={styles.textStyle}>
-                            XP
+                            {currentXP} / {nedeedXP}
                         </Text>
-                        <ProgressBar primaryColor='white' secondaryColor='#05e6ff' score={100} hideText={true} />
+                        <ProgressBar primaryColor='white' secondaryColor='#05e6ff' score={currentXP * 100 / nedeedXP} hideText={true} />
 
                     </View>
                     <View style={styles.levelBox}>
                         <Text style={styles.textStyle}>
-                            100
+                            {level}
                         </Text>
                         <Text style={styles.textStyle}>
                             Lvl
@@ -161,50 +202,82 @@ export const Homepage = ({ navigation }) => {
 
                     </View>
                     <View style={{ flex: 1, marginTop: 10 }}>
-                        <Scrollbar>
-                            <FlatList
-                                data={Quests}
-                       
-                                renderItem={({ item }) => (
+                        {Quests
+                            &&
+                            <Scrollbar>
+                                <FlatList
+                                    data={Quests}
+
+                                    renderItem={({ item }) => (
 
 
-                                    <View style={styles.questButton}>
-                                        <Checkbox style={{ marginRight: 10 }} onChange={() => {setCompletedList(item)}} />
+                                        <View style={styles.questButton}>
+                                            <Checkbox style={{ marginRight: 10 }} onChange={() => { setCompletedList(item) }} />
 
-                                        <TouchableOpacity style={{ flex: 1 }}
+                                            <View style={{ flex: 1,}}>
+                                                <TouchableOpacity style={{ flex: 1 }}
 
-                                        onPress={() => QuestDetails(item)}
-                                        onLongPress={() => setDeleteState(!deleteState)}
-                                        
-                                        >
-                                            <Text style={{ color: 'white', fontSize: 20 }}>{item.name || 'error'}</Text>
-                                        </TouchableOpacity>
+                                                    onPress={() => QuestDetails(item)}
+                                                    onLongPress={() => setDeleteState(!deleteState)}
 
-                                        {deleteState &&
-
-                                            <View style={{ marginHorizontal: 15 }}>
-                                                <TouchableOpacity onPress={() => deleteQuestF(item)}>
-                                                    <RemoveCircle style={{ color: 'red', fontSize: 30 }} />
+                                                >
+                                                    <Text style={{ color: 'white', fontSize: 20 }}> Fazer {item.quantity} {item.topic == 'Exercícios Físicos' || "exercícios de"} {item.subTopic.topico} </Text>
                                                 </TouchableOpacity>
+                                                { item.topic == 'Redação' && 
+                                                    <TextField
+                                                    id="filled-number"
+                                                    label="Nota"
+                                                    type="number"
+                                                    variant="filled"
+                                               
+                                                    sx={{
+                                                        '& .MuiInputBase-input': {
+                                                            color: 'white', // Cor da fonte do input
+                                                        },
+                                                        '& .MuiInputLabel-root': {
+                                                            color: 'white', // Cor da fonte do label
+                                                        },
+                                                        '& .MuiFormHelperText-root': {
+                                                            color: 'white', // Muda a cor do helperText
+                                
+                                                        },
+                                
+                                                    }}
+                                                    onChange={(e) => { setNotaRedacao(e.target.value) }}
+                                                    required
+                                
+                                                />
+                                                }
                                             </View>
 
-                                        }
-                                    </View>
+                                            {deleteState &&
+
+                                                <View style={{ marginHorizontal: 15 }}>
+                                                    <TouchableOpacity onPress={() => deleteQuestF(item)}>
+                                                        <RemoveCircle style={{ color: 'red', fontSize: 30 }} />
+                                                    </TouchableOpacity>
+                                                </View>
+
+                                            }
 
 
-                                )} />
-                        </Scrollbar>
-                        <TouchableOpacity style={styles.addQuestButton} onPress={() => navigation.navigate('NewQuest')}>
+                                        </View>
+
+
+                                    )} />
+                            </Scrollbar>
+                        }
+                        <TouchableOpacity style={styles.addQuestButton} onPress={() => navigation.navigate('NewQuest', 'currentQuests')}>
                             <Text style={{ color: 'white', fontSize: 20 }}>Add Quest</Text>
                         </TouchableOpacity>
 
                         {
-                            error && 
-                        
-                        <TouchableOpacity style={styles.addQuestButton} onPress={deleteAll}>
-                            <Text style={{ color: 'white', fontSize: 20 }}>Delete all data (for emergency only)</Text>
-                        </TouchableOpacity>
-                        
+                            error &&
+
+                            <TouchableOpacity style={styles.addQuestButton} onPress={deleteAll}>
+                                <Text style={{ color: 'white', fontSize: 20 }}>Delete all data (for emergency only)</Text>
+                            </TouchableOpacity>
+
                         }
 
 
@@ -283,7 +356,8 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         marginTop: 30,
         marginHorizontal: 5,
-        height: 70
+        height: 'auto',
+        padding: 10
     },
 
     addQuestButton: {
